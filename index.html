@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW"><head>
     <meta charset="UTF-8">
-    <title>[08:00:29] 卡嵐達, 不可殺</title>
+    <title>[07:22:09] 卡嵐達, 不可殺</title>
     <style id="base-style">
         :root { 
             --bg: #121418; --card: #1e222a; --header: #2d323e; --text: #e0e0e0; 
@@ -9,7 +9,6 @@
         }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* 頂部品牌化與作者署名 */
         .brand-container { text-align: center; margin-bottom: 15px; }
         .guild-brand { font-size: 2.2em; font-weight: bold; color: var(--accent); text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 3px; margin: 0; }
         .guild-brand span { color: #fff; font-size: 0.5em; border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; vertical-align: middle; margin-left: 10px; letter-spacing: 1px; }
@@ -23,13 +22,18 @@
         .guild-boss-area { background: #2c2222; border: 2px solid var(--guild); padding: 15px; border-radius: 10px; margin-bottom: 15px; width: 100%; max-width: 600px; text-align: center; }
         .guild-title { color: var(--guild); font-weight: bold; font-size: 1.1em; margin-bottom: 10px; display: block; }
         
-        .voice-controls { margin-bottom: 15px; background: #333; padding: 10px 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--accent); }
+        .voice-controls { margin-bottom: 15px; background: #333; padding: 15px 20px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1px solid var(--accent); width: 100%; max-width: 600px; }
+        .voice-row { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        select { background: #444; color: white; border: 1px solid var(--accent); padding: 5px; border-radius: 4px; cursor: pointer; }
+
         .toolbar { margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         button { cursor: pointer; padding: 8px 15px; border-radius: 4px; border: 1px solid var(--grid-line); background: var(--header); color: white; font-weight: bold; transition: 0.2s; }
         button:hover { opacity: 0.8; }
         
         .export-btn { background: #27ae60; border-color: #2ecc71; }
         .readonly-btn { background: #2980b9; border-color: #3498db; }
+        .test-btn { background: #8e44ad; border-color: #9b59b6; }
         .guild-btn { background: var(--guild); border-color: #c0392b; }
 
         table { border-collapse: collapse; width: 100%; max-width: 1200px; background: var(--card); border: 2px solid var(--grid-line); table-layout: fixed; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -52,8 +56,8 @@
 
 <div id="top-bar">
     <div id="date-display">2026年2月20日 星期五</div>
-    <div id="clock">02:59:30</div>
-    <div id="next-boss-info">下一場預告：卡嵐達, 不可殺 (08:00:29)</div>
+    <div id="clock">03:37:50</div>
+    <div id="next-boss-info">下一場預告：卡嵐達, 不可殺 (07:22:09)</div>
 </div>
 
 <div class="guild-boss-area">
@@ -66,9 +70,21 @@
 </div>
 
 <div class="voice-controls">
-    <button id="voiceToggleBtn" class="voice-btn" onclick="toggleVoice()" style="background: rgb(39, 174, 96);">🔊 語音：開啟</button>
-    <span style="font-size:0.9em; color:var(--accent);">音量：</span>
-    <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="0.5" onchange="saveVolume()">
+    <div class="voice-row">
+        <button id="voiceToggleBtn" class="voice-btn" onclick="toggleVoice()" style="background: rgb(39, 174, 96);">🔊 語音：開啟</button>
+        <button class="test-btn" onclick="testCurrentVoice()">📢 測試播報</button>
+    </div>
+    <div class="voice-row">
+        <span style="font-size:0.9em; color:var(--accent);">語言：</span>
+        <select id="voiceLangSelect" onchange="saveVoiceLang()">
+            <option value="zh-TW">中文 (繁體)</option>
+            <option value="en-US">English (US)</option>
+            <option value="ja-JP">日本語 (JP)</option>
+            <option value="ko-KR">한국어 (KR)</option>
+        </select>
+        <span style="font-size:0.9em; color:var(--accent); margin-left:10px;">音量：</span>
+        <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="0.5" onchange="saveVolume()">
+    </div>
 </div>
 
 <div class="toolbar" id="admin-tools">
@@ -90,19 +106,38 @@
 
 <script id="main-script">const removeItemDisabled = true;
 
-    // 資料定義 (維持 2026 最新版邏輯)
     let schedule = {"00:15-週六":["肯恩特/木拉卡"],"00:15-週日":["卡莫斯"],"02:00-週一":["克價卡","不可殺"],"02:00-週二":["羅裴勒","烏圖里"],"02:00-週三":["奧平","金豬王"],"02:00-週四":["卡嵐達","金豬王"],"02:00-週五":["庫屯","山君"],"02:00-週六":["庫屯","不可殺"],"02:00-週日":["羅裴勒","山君"],"11:00-週一":["羅裴勒","烏圖里"],"11:00-週二":["庫屯","金豬王"],"11:00-週三":["克價卡","山君"],"11:00-週五":["卡嵐達","不可殺"],"11:00-週六":["卡嵐達","烏圖里"],"11:00-週日":["庫屯","不可殺"],"14:00-週一":["卡莫斯"],"14:00-週二":["卡莫斯"],"14:00-週三":["卡莫斯"],"14:00-週四":["卡莫斯"],"14:00-週五":["卡莫斯"],"14:00-週六":["卡莫斯"],"14:00-週日":["卡莫斯"],"15:00-週一":["奧平","金豬王"],"15:00-週二":["羅裴勒","山君"],"15:00-週三":["卡嵐達","山君"],"15:00-週四":["羅裴勒","不可殺"],"15:00-週五":["克價卡","烏圖里"],"15:00-週六":["克價卡","金豬王"],"15:00-週日":["卡嵐達","烏圖里"],"16:00-週六":["黑暗影子"],"16:00-週日":["貝爾"],"19:00-週一":["肯恩特/木拉卡"],"19:00-週二":["貝爾"],"20:00-週一":["卡嵐達","山君"],"20:00-週二":["克價卡","不可殺"],"20:00-週三":["庫屯","不可殺"],"20:00-週四":["羅裴勒","烏圖里"],"20:00-週五":["羅裴勒","金豬王"],"20:00-週日":["克價卡","山君"],"20:30-週一":["卡莫斯"],"20:30-週二":["卡莫斯"],"20:30-週三":["卡莫斯"],"20:30-週四":["卡莫斯"],"20:30-週五":["卡莫斯"],"20:30-週日":["卡莫斯"],"23:30-週一":["庫屯","不可殺"],"23:30-週二":["卡嵐達","烏圖里"],"23:30-週三":["克價卡","烏圖里"],"23:30-週四":["庫屯","金豬王"],"23:30-週五":["奧平","山君"],"23:30-週日":["羅裴勒","金豬王"]};
     let guildBoss = {"day":"週六","time":"21:00"}; 
+    let currentNextData = null;
 
     const dayNames = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
     const times = ["00:15", "02:00", "11:00", "14:00", "15:00", "16:00", "19:00", "20:00", "20:30", "23:30"];
     
+    // 王名翻譯字典
+    const bossTranslations = {
+        "克價卡": { "en-US": "Kzarka", "ja-JP": "クザカ", "ko-KR": "크자카" },
+        "卡嵐達": { "en-US": "Karanda", "ja-JP": "カランダ", "ko-KR": "카란다" },
+        "庫屯": { "en-US": "Kutum", "ja-JP": "クツム", "ko-KR": "쿠툼" },
+        "羅裴勒": { "en-US": "Nouver", "ja-JP": "ヌーベル", "ko-KR": "누베르" },
+        "奧平": { "en-US": "Offin", "ja-JP": "オピン", "ko-KR": "오핀" },
+        "卡莫斯": { "en-US": "Garmoth", "ja-JP": "ガーモス", "ko-KR": "가모스" },
+        "貝爾": { "en-US": "Vell", "ja-JP": "ベル", "ko-KR": "벨" },
+        "肯恩特/木拉卡": { "en-US": "Quint and Muraka", "ja-JP": "クィント、ムラカ", "ko-KR": "퀸트, 무라카" },
+        "山君": { "en-US": "Sangoon", "ja-JP": "サングン", "ko-KR": "산군" },
+        "金豬王": { "en-US": "Golden Pig King", "ja-JP": "金豚王", "ko-KR": "금돼지왕" },
+        "不可殺": { "en-US": "Bulgasal", "ja-JP": "プガサル", "ko-KR": "불가살" },
+        "烏圖里": { "en-US": "Uturi", "ja-JP": "ウトゥリ", "ko-KR": "우투리" },
+        "黑暗影子": { "en-US": "Dark Shadow", "ja-JP": "フィールドボス", "ko-KR": "필드 우두머리" }
+    };
+
     let voiceEnabled = localStorage.getItem('voiceEnabled') === null ? true : localStorage.getItem('voiceEnabled') === 'true';
     let lastAnnounced = "";
 
     function initVoice() {
         const vol = localStorage.getItem('voiceVolume') || 0.5;
         document.getElementById('volumeRange').value = vol;
+        const lang = localStorage.getItem('voiceLang') || 'zh-TW';
+        document.getElementById('voiceLangSelect').value = lang;
         updateVoiceBtn();
     }
 
@@ -110,7 +145,7 @@
         voiceEnabled = !voiceEnabled;
         localStorage.setItem('voiceEnabled', voiceEnabled);
         updateVoiceBtn();
-        if (voiceEnabled) speak("音声案内を有効にしました");
+        if (voiceEnabled) speakPrompt();
     }
 
     function updateVoiceBtn() {
@@ -120,18 +155,58 @@
     }
 
     function saveVolume() { localStorage.setItem('voiceVolume', document.getElementById('volumeRange').value); }
+    function saveVoiceLang() { localStorage.setItem('voiceLang', document.getElementById('voiceLangSelect').value); speakPrompt(); }
+
+    function speakPrompt() {
+        const lang = document.getElementById('voiceLangSelect').value;
+        const prompts = {
+            'zh-TW': '語音提醒已開啟',
+            'en-US': 'Voice alerts enabled',
+            'ja-JP': '音声案内を有効にしました',
+            'ko-KR': '음성 안내가 활성화되었습니다'
+        };
+        speak(prompts[lang]);
+    }
+
+    function testCurrentVoice() {
+        if (!currentNextData) { alert("目前沒有王排程可測試！"); return; }
+        processAnnounce(currentNextData, 15, true);
+    }
 
     function speak(text) {
         if (!voiceEnabled) return;
+        const lang = document.getElementById('voiceLangSelect').value;
         const synth = window.speechSynthesis;
         const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ja-JP';
+        utter.lang = lang;
         utter.volume = document.getElementById('volumeRange').value;
         synth.speak(utter);
     }
 
+    function processAnnounce(bossData, totalMins, isTest = false) {
+        const lang = document.getElementById('voiceLangSelect').value;
+        
+        // 翻譯邏輯
+        let names = bossData.name.split(',').map(n => n.trim());
+        let translatedNames = names.map(n => {
+            return (bossTranslations[n] && bossTranslations[n][lang]) ? bossTranslations[n][lang] : n;
+        }).join(', ');
+
+        if (bossData.isGuild) {
+            translatedNames = (lang === 'zh-TW' ? '公會王' : (lang === 'en-US' ? 'Guild Boss' : (lang === 'ja-JP' ? 'ギルドボス' : '길드 보스')));
+        }
+        
+        let msg = "";
+        if (lang === 'zh-TW') msg = `${translatedNames}，還有 ${totalMins} 分鐘`;
+        else if (lang === 'en-US') msg = `${translatedNames}, ${totalMins} minutes remaining`;
+        else if (lang === 'ja-JP') msg = `${translatedNames}、あと ${totalMins} 分です`;
+        else if (lang === 'ko-KR') msg = `${translatedNames}, ${totalMins} 분 전입니다`;
+        
+        speak(isTest ? `(Test) ${msg}` : msg);
+    }
+
     function setGuildBoss() {
-        const d = prompt("請輸入週幾 (如: 週六 或 6):");
+        const d = prompt("請輸入週幾 (如: 6):");
         let t = prompt("請輸入時間 (如: 2100):");
         if (d && t) {
             t = t.trim().replace(/\D/g, '');
@@ -141,7 +216,7 @@
             if(dayNames.includes(dayStr)) {
                 guildBoss = { day: dayStr, time: t };
                 updateGuildStatus();
-            } else { alert("星期輸入錯誤！"); }
+            }
         }
     }
 
@@ -223,19 +298,20 @@
 
         if (combinedList.length > 0) {
             const nextAny = combinedList[0];
+            currentNextData = nextAny;
             const diff = nextAny.time - now;
             const hh = Math.floor(diff / 3600000).toString().padStart(2,'0');
             const mm = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
             const ss = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
             const timerStr = `${hh}:${mm}:${ss}`;
-            document.getElementById('next-boss-info').innerText = `下一場預告：${nextAny.isGuild ? "🛡️ 公會王" : nextAny.name} (${timerStr})`;
-            document.title = `[${timerStr}] ${nextAny.isGuild ? "公會王" : nextAny.name}`; 
+            const bossDisplay = nextAny.isGuild ? "🛡️ 公會王" : nextAny.name;
+            document.getElementById('next-boss-info').innerText = `下一場預告：${bossDisplay} (${timerStr})`;
+            document.title = `[${timerStr}] ${bossDisplay}`; 
 
             const totalMins = Math.floor(diff / 60000);
             const announceKey = `${nextAny.name}-${totalMins}`;
             if ((totalMins === 30 || totalMins === 15 || totalMins === 5) && lastAnnounced !== announceKey) {
-                const jpTime = totalMins === 30 ? "三十分" : (totalMins === 15 ? "十五分" : "五分");
-                speak(`${nextAny.name}、あと${jpTime}です`);
+                processAnnounce(nextAny, totalMins, false);
                 lastAnnounced = announceKey;
             }
         }
@@ -264,7 +340,7 @@
         src = src.replace(/let guildBoss = \{.*?\};/, `let guildBoss = ${gStr};`);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob(["<!DOCTYPE html>\n" + src], { type: 'text/html' }));
-        a.download = isReadOnly ? 'BDO_boss_timer_UPLOAD.html' : 'BDO_boss_timer_ADMIN.html';
+        a.download = isReadOnly ? '酒癮計時器_Web.html' : '酒癮計時器_Admin.html';
         a.click();
     }
 
